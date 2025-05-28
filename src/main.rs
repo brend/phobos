@@ -1,13 +1,15 @@
 use lalrpop_util::lalrpop_mod;
 
-lalrpop_mod!(pub calculator1);
+lalrpop_mod!(pub calculator4);
+
+pub mod ast;
 
 #[test]
-fn calculator1test() {
-    assert!(calculator1::TermParser::new().parse("22").is_ok());
-    assert!(calculator1::TermParser::new().parse("(22)").is_ok());
-    assert!(calculator1::TermParser::new().parse("((((22))))").is_ok());
-    assert!(calculator1::TermParser::new().parse("((22)").is_err());
+fn calculator4() {
+    let expr = calculator4::ExprParser::new()
+        .parse("22 * 44 + 66")
+        .unwrap();
+    assert_eq!(&format!("{:?}", expr), "((22 * 44) + 66)");
 }
 
 fn main() {}
