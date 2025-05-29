@@ -1,15 +1,20 @@
 use lalrpop_util::lalrpop_mod;
 
-lalrpop_mod!(pub calculator4);
+lalrpop_mod!(pub phobos_grammar);
 
 pub mod ast;
 
-#[test]
-fn calculator4() {
-    let expr = calculator4::ExprParser::new()
-        .parse("22 * 44 + 66")
-        .unwrap();
-    assert_eq!(&format!("{:?}", expr), "((22 * 44) + 66)");
-}
+fn main() {
+    let program = phobos_grammar::ProgramParser::new()
+        .parse("extern foo(n: Int): Int")
+        .expect("Failed to parse program");
 
-fn main() {}
+    println!(
+        "{}",
+        program
+            .iter()
+            .map(|decl| format!("{:?}", decl))
+            .collect::<Vec<String>>()
+            .join("\n")
+    );
+}

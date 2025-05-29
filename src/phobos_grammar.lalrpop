@@ -1,0 +1,93 @@
+use std::str::FromStr;
+use crate::ast::*;
+
+grammar;
+
+pub Program: Vec<TopLevelDecl> = {
+    TopLevelDecl* => <>,
+};
+
+TopLevelDecl: TopLevelDecl = {
+    FunctionDecl => TopLevelDecl::FunctionDecl(<>),
+    ExternDecl => TopLevelDecl::ExternDecl(<>),
+    TypeDecl => TopLevelDecl::TypeDecl(<>),
+    GameDecl => TopLevelDecl::GameDecl(<>),
+};
+
+FunctionDecl: FunctionDecl = {
+    "fn" <n: Ident> "(" <ps: Params> ")" ":" <ret: Type> <bd: Block> => FunctionDecl::new(n, ps, ret, bd),
+};
+
+ExternDecl: ExternDecl = {
+    "extern" <n: Ident> "(" <ps: Params> ")" ":" <ret: Type> => ExternDecl::new(n, ps, ret),
+};
+
+TypeDecl: TypeDecl = {
+    "type" <n: Ident> "{" <fs: Fields> "}" => TypeDecl::new(n, fs),
+};
+
+GameDecl: GameDecl = {
+    "game" <n: Ident> "{" <fs: FunctionDecl*> "}" => GameDecl::new(n, fs),
+};
+
+Params: Vec<ParamDecl> = {
+    ParamDecl* => <>,
+};
+
+ParamDecl: ParamDecl = {
+    <n: Ident> ":" <ty: Type> => ParamDecl::new(n, ty),
+};
+
+Fields: Vec<FieldDecl> = {
+    "(" <fs: FieldDecl*> ")" => fs
+};
+
+FieldDecl: FieldDecl = {
+    <n: Ident> ":" <ty: Type> => FieldDecl::new(n, ty),
+};
+
+Expr: Box<Expr> = {
+    Expr ExprOp Factor => Box::new(Expr::Op(<>)),
+    Factor,
+};
+
+ExprOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
+};
+
+Factor: Box<Expr> = {
+    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+    Term,
+};
+
+FactorOp: Opcode = {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
+};
+
+Term: Box<Expr> = {
+    Num => Box::new(Expr::Number(<>)),
+    "(" <Expr> ")"
+};
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap()
+};
+
+Ident: String = {
+    r"[a-zA-Z_][a-zA-Z0-9_]*" => String::from(<>)
+};
+
+Block: Block = {
+    "{" <sm: Stmt*> "}" => Block::new(sm),
+};
+
+Stmt: Stmt = {
+    <e: Expr> ";" => Stmt::Expr(e),
+    "return" <e: Expr> ";" => Stmt::Return(e),
+};
+
+Type: Type = {
+    Ident => Type::new(<>),
+}
