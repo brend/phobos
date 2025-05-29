@@ -229,7 +229,7 @@ impl Debug for ExternDecl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "extern {}({}) {:?}",
+            "extern {}({}): {:?}",
             self.name,
             self.params
                 .iter()
