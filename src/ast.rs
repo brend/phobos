@@ -100,7 +100,7 @@ impl Debug for Block {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{{{}}}",
+            "{{ {} }}",
             self.stmts
                 .iter()
                 .map(|stmt| format!("{:?}", stmt))
@@ -122,16 +122,17 @@ impl Debug for Stmt {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Stmt::Let(name, ty, expr) => write!(f, "let {}: {:?} = {:?};", name, ty, expr),
-            Stmt::Assign(name, expr) => write!(f, "{} = {:?}", name, expr),
+            Stmt::Assign(name, expr) => write!(f, "{} = {:?};", name, expr),
             Stmt::If(cond, then, els) => write!(f, "if {:?} {:?} {:?}", cond, then, els),
-            Stmt::Return(expr) => write!(f, "return {:?}", expr),
-            Stmt::Expr(expr) => write!(f, "{:?}", expr),
+            Stmt::Return(expr) => write!(f, "return {:?};", expr),
+            Stmt::Expr(expr) => write!(f, "{:?};", expr),
         }
     }
 }
 
 pub enum Expr {
     Number(i32),
+    Ident(String),
     Op(Box<Expr>, Opcode, Box<Expr>),
 }
 
@@ -139,6 +140,7 @@ impl Debug for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
+            Expr::Ident(name) => write!(f, "{}", name),
             Expr::Op(left, op, right) => write!(f, "({:?} {:?} {:?})", left, op, right),
         }
     }
@@ -192,7 +194,16 @@ impl TypeDecl {
 
 impl Debug for TypeDecl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "type {}", self.name)
+        write!(
+            f,
+            "type {} {{ {} }}",
+            self.name,
+            self.fields
+                .iter()
+                .map(|field| format!("{:?}", field))
+                .collect::<Vec<_>>()
+                .join(", ")
+        )
     }
 }
 

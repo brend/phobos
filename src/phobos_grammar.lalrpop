@@ -39,7 +39,12 @@ ParamDecl: ParamDecl = {
 };
 
 Fields: Vec<FieldDecl> = {
-    "(" <fs: FieldDecl*> ")" => fs
+    <first:FieldDecl> "," <rest:Fields> => {
+        let mut fields = vec![first];
+        fields.extend(rest);
+        fields
+    },
+    <last:FieldDecl> => vec![last],
 };
 
 FieldDecl: FieldDecl = {
@@ -68,6 +73,7 @@ FactorOp: Opcode = {
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
+    Ident => Box::new(Expr::Ident(<>)),
     "(" <Expr> ")"
 };
 

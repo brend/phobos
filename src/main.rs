@@ -24,4 +24,26 @@ fn test_parse_extern_decl() {
     assert_eq!(stringified, code);
 }
 
+#[test]
+fn test_parse_function_decl() {
+    let code = "fn foo(n: Int): Int { return (n + 1); }";
+    let program = phobos_grammar::ProgramParser::new()
+        .parse(code)
+        .expect("Failed to parse program");
+    let stringified = program_to_string(&program);
+
+    assert_eq!(stringified, code);
+}
+
+#[test]
+fn test_parse_type_decl() {
+    let code = "type Foo { name: String, age: Int }";
+    let program = phobos_grammar::ProgramParser::new()
+        .parse(code)
+        .expect("Failed to parse program");
+    let stringified = program_to_string(&program);
+
+    assert_eq!(stringified, code);
+}
+
 fn main() {}
