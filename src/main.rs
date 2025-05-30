@@ -1,12 +1,12 @@
 use ast::TopLevelDecl;
 use lalrpop_util::lalrpop_mod;
-use types::{Type, TypeEnvironment};
 
 lalrpop_mod!(pub phobos_grammar);
 
 pub mod ast;
 pub mod types;
 
+#[allow(dead_code)]
 fn program_to_string(program: &Vec<TopLevelDecl>) -> String {
     program
         .iter()

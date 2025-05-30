@@ -127,7 +127,7 @@ fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnvironment) -> Result<(), String> 
             }
         }
         Stmt::Return(expr) => {
-            let ty_expr = derive_type(expr, env)?;
+            let _ = derive_type(expr, env)?;
             // TODO: Check if the return type matches the function's return type
             Ok(())
         }
