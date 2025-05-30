@@ -96,6 +96,41 @@ fn typecheck_block(block: &Block, env: &mut TypeEnvironment) -> Result<(), Strin
 fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnvironment) -> Result<(), String> {
     match stmt {
         Stmt::Expr(expr) => typecheck_expr(expr, env),
+        Stmt::Assign(id, expr) => {
+            // look up the type of the identifier
+            let ty_left = env
+                .get_type(id)
+                .ok_or_else(|| format!("Undefined identifier: {}", id))?;
+            // derive the type of the expression
+            let ty_right = derive_type(expr, env)?;
+            // assignment is valid if the types are compatible
+            if is_assignable(&ty_left, &ty_right) {
+                Ok(())
+            } else {
+                Err(format!(
+                    "Type mismatch: {:?} cannot be assigned to {:?}",
+                    ty_right, ty_left
+                ))
+            }
+        }
+        Stmt::Let(id, ty, expr) => {
+            let ty: Type = ty.clone().into();
+            let ty_expr = derive_type(expr, env)?;
+            if is_assignable(&ty, &ty_expr) {
+                env.set_type(id, ty);
+                Ok(())
+            } else {
+                Err(format!(
+                    "Type mismatch: {:?} cannot be assigned to {:?}",
+                    ty_expr, ty
+                ))
+            }
+        }
+        Stmt::Return(expr) => {
+            let ty_expr = derive_type(expr, env)?;
+            // TODO: Check if the return type matches the function's return type
+            Ok(())
+        }
         _ => unimplemented!(),
     }
 }
@@ -130,5 +165,12 @@ pub fn derive_type(expr: &Expr, env: &mut TypeEnvironment) -> Result<Type, Strin
                 }
             }
         }
+    }
+}
+
+fn is_assignable(ty_left: &Type, ty_right: &Type) -> bool {
+    match (ty_left, ty_right) {
+        (Type::Number, Type::Number) => true,
+        _ => false,
     }
 }

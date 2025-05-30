@@ -49,18 +49,10 @@ fn test_parse_type_decl() {
 }
 
 fn main() {
-    // let code = "fn foo(n: Int): Int { return (n + 1); }";
-    // let program = phobos_grammar::ProgramParser::new()
-    //     .parse(code)
-    //     .expect("Failed to parse program");
-    // types::typecheck(&program).expect("Type checking failed");
-    // println!("Parsed program successfully!");
-    let code = "3 + n";
-    let program = phobos_grammar::ExprParser::new()
+    let code = "fn foo(n: Number): Number { return (n + 1); }";
+    let program = phobos_grammar::ProgramParser::new()
         .parse(code)
         .expect("Failed to parse program");
-    let mut env = TypeEnvironment::new();
-    env.set_type("n", Type::String);
-    let t = types::derive_type(&program, &mut env).expect("Type checking failed");
-    println!("Parsed program successfully: {:?}", &t);
+    types::typecheck(&program).expect("Type checking failed");
+    println!("Parsed program successfully!");
 }
