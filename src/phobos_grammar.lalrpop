@@ -51,8 +51,8 @@ FieldDecl: FieldDecl = {
     <n: Ident> ":" <ty: Type> => FieldDecl::new(n, ty),
 };
 
-Expr: Box<Expr> = {
-    Expr ExprOp Factor => Box::new(Expr::Op(<>)),
+pub Expr: Box<Expr> = {
+    Expr ExprOp Factor => Box::new(Expr::BinaryExp(<>)),
     Factor,
 };
 
@@ -62,7 +62,7 @@ ExprOp: Opcode = {
 };
 
 Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::Op(<>)),
+    Factor FactorOp Term => Box::new(Expr::BinaryExp(<>)),
     Term,
 };
 

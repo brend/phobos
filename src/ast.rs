@@ -70,6 +70,7 @@ impl Debug for ParamDecl {
     }
 }
 
+#[derive(Clone)]
 pub struct Type {
     pub name: String,
 }
@@ -132,16 +133,18 @@ impl Debug for Stmt {
 
 pub enum Expr {
     Number(i32),
+    String(String),
     Ident(String),
-    Op(Box<Expr>, Opcode, Box<Expr>),
+    BinaryExp(Box<Expr>, Opcode, Box<Expr>),
 }
 
 impl Debug for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Expr::Number(n) => write!(f, "{}", n),
+            Expr::String(s) => write!(f, "\"{}\"", s),
             Expr::Ident(name) => write!(f, "{}", name),
-            Expr::Op(left, op, right) => write!(f, "({:?} {:?} {:?})", left, op, right),
+            Expr::BinaryExp(left, op, right) => write!(f, "({:?} {:?} {:?})", left, op, right),
         }
     }
 }
