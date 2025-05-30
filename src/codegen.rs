@@ -2,12 +2,14 @@ use std::io::Write;
 
 use crate::ast::{Expr, FunctionDecl, Opcode, Stmt, TopLevelDecl};
 
+const INDENT: usize = 4;
+
 pub fn generate_code<W: Write>(
     writer: &mut W,
     program: &Vec<TopLevelDecl>,
 ) -> Result<(), std::io::Error> {
     for decl in program {
-        generate_declaration(writer, decl)?;
+        generate_declaration(writer, decl, 0)?;
     }
     Ok(())
 }
@@ -15,16 +17,21 @@ pub fn generate_code<W: Write>(
 fn generate_declaration<W: Write>(
     writer: &mut W,
     decl: &TopLevelDecl,
+    indent: usize,
 ) -> Result<(), std::io::Error> {
     match decl {
-        TopLevelDecl::FunctionDecl(func) => generate_function(writer, func)?,
+        TopLevelDecl::FunctionDecl(func) => generate_function(writer, func, indent)?,
         _ => unimplemented!(),
     }
     Ok(())
 }
 
-fn generate_function<W: Write>(writer: &mut W, func: &FunctionDecl) -> Result<(), std::io::Error> {
-    write!(writer, "function {}(", func.name)?;
+fn generate_function<W: Write>(
+    writer: &mut W,
+    func: &FunctionDecl,
+    indent: usize,
+) -> Result<(), std::io::Error> {
+    write!(writer, "{}function {}(", " ".repeat(indent), func.name)?;
     for (i, param) in func.params.iter().enumerate() {
         if i > 0 {
             write!(writer, ", ")?;
@@ -33,19 +40,23 @@ fn generate_function<W: Write>(writer: &mut W, func: &FunctionDecl) -> Result<()
     }
     write!(writer, ")\n")?;
     for stmt in &func.body.stmts {
-        generate_statement(writer, stmt)?;
+        generate_statement(writer, stmt, indent + INDENT)?;
     }
     write!(writer, "end\n")?;
     Ok(())
 }
 
-fn generate_statement<W: Write>(writer: &mut W, stmt: &Stmt) -> Result<(), std::io::Error> {
+fn generate_statement<W: Write>(
+    writer: &mut W,
+    stmt: &Stmt,
+    indent: usize,
+) -> Result<(), std::io::Error> {
     match stmt {
         Stmt::Expr(expr) => generate_expression(writer, expr)?,
         Stmt::Return(expr) => {
-            write!(writer, "return ")?;
+            write!(writer, "{}return ", " ".repeat(indent))?;
             generate_expression(writer, expr)?;
-            write!(writer, "\n")?;
+            write!(writer, "{}\n", " ".repeat(indent))?;
         }
         _ => unimplemented!(),
     }
@@ -64,7 +75,6 @@ fn generate_expression<W: Write>(writer: &mut W, expr: &Expr) -> Result<(), std:
             generate_expression(writer, right)?;
             write!(writer, ")")
         }
-        _ => unimplemented!(),
     }
 }
 

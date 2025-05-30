@@ -8,7 +8,7 @@ pub mod codegen;
 pub mod types;
 
 fn main() {
-    let code = "fn foo(n: Number): Number { return n + 1; }";
+    let code = "fn inc(n: Number): Number { return n + 1; }";
     println!("You entered:\n  {}", code);
     let program = phobos_grammar::ProgramParser::new()
         .parse(code)
