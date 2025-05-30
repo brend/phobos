@@ -4,7 +4,22 @@ use lalrpop_util::lalrpop_mod;
 lalrpop_mod!(pub phobos_grammar);
 
 pub mod ast;
+pub mod codegen;
 pub mod types;
+
+fn main() {
+    let code = "fn foo(n: Number): Number { return n + 1; }";
+    println!("You entered:\n  {}", code);
+    let program = phobos_grammar::ProgramParser::new()
+        .parse(code)
+        .expect("Failed to parse program");
+    println!("Parsed program successfully!");
+    types::typecheck(&program).expect("Type checking failed");
+    println!("Type checked program successfully!");
+    let stdout = std::io::stdout();
+    let mut handle = stdout.lock();
+    codegen::generate_code(&mut handle, &program).expect("Failed to generate code");
+}
 
 #[allow(dead_code)]
 fn program_to_string(program: &Vec<TopLevelDecl>) -> String {
@@ -46,13 +61,4 @@ fn test_parse_type_decl() {
     let stringified = program_to_string(&program);
 
     assert_eq!(stringified, code);
-}
-
-fn main() {
-    let code = "fn foo(n: Number): Number { return (n + 1); }";
-    let program = phobos_grammar::ProgramParser::new()
-        .parse(code)
-        .expect("Failed to parse program");
-    types::typecheck(&program).expect("Type checking failed");
-    println!("Parsed program successfully!");
 }

@@ -13,6 +13,7 @@ impl From<ast::Type> for Type {
     fn from(ty: ast::Type) -> Self {
         match ty.name.as_str() {
             "Number" => Type::Number,
+            "String" => Type::String,
             _ => unimplemented!(),
         }
     }
