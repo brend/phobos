@@ -1,3 +1,4 @@
+use ast::TopLevelDecl;
 use lalrpop_util::lalrpop_mod;
 use types::{Type, TypeEnvironment};
 
@@ -5,6 +6,14 @@ lalrpop_mod!(pub phobos_grammar);
 
 pub mod ast;
 pub mod types;
+
+fn program_to_string(program: &Vec<TopLevelDecl>) -> String {
+    program
+        .iter()
+        .map(|decl| format!("{:?}", decl))
+        .collect::<Vec<String>>()
+        .join("\n")
+}
 
 #[test]
 fn test_parse_extern_decl() {
