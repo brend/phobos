@@ -7,5 +7,6 @@ fn add(a: Number, n: Number): Number {
 }
 
 fn mean(a: Number, b: Number): Number {
-    return (a + b) / 2;
+    let sum: Number = a + b;
+    return sum / 2;
 }

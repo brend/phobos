@@ -58,6 +58,11 @@ fn generate_statement<W: Write>(
             generate_expression(writer, expr)?;
             write!(writer, "{}\n", " ".repeat(indent))?;
         }
+        Stmt::Let(name, _, expr) => {
+            write!(writer, "{}local {} = ", " ".repeat(indent), name)?;
+            generate_expression(writer, expr)?;
+            write!(writer, "{}\n", " ".repeat(indent))?;
+        }
         _ => unimplemented!(),
     }
     Ok(())
