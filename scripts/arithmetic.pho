@@ -1,0 +1,11 @@
+fn inc(n: Number): Number {
+    return n + 1;
+}
+
+fn add(a: Number, n: Number): Number {
+    return a + n;
+}
+
+fn mean(a: Number, b: Number): Number {
+    return (a + b) / 2;
+}
