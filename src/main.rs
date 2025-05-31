@@ -6,18 +6,47 @@ pub mod ast;
 pub mod codegen;
 pub mod types;
 
-fn main() {
-    let code = "fn inc(n: Number): Number { return n + 1; }";
-    println!("You entered:\n  {}", code);
+use std::env;
+use std::fs::File;
+use std::io::{self, BufRead, BufReader};
+
+fn main() -> io::Result<()> {
+    let mut reader = open_reader()?;
+    let mut input = String::new();
+    reader.read_to_string(&mut input)?;
+
+    println!("## Input\n\n{}", input);
+
     let program = phobos_grammar::ProgramParser::new()
-        .parse(code)
+        .parse(&input)
         .expect("Failed to parse program");
-    println!("Parsed program successfully!");
+
+    println!("\nParsing successful!");
+
     types::typecheck(&program).expect("Type checking failed");
-    println!("Type checked program successfully!");
+
+    println!("Type check successful!");
+    println!("## Output\n\n``` Lua\n");
+
     let stdout = std::io::stdout();
     let mut handle = stdout.lock();
     codegen::generate_code(&mut handle, &program).expect("Failed to generate code");
+
+    println!("\n```");
+    Ok(())
+}
+
+fn open_reader() -> io::Result<Box<dyn BufRead>> {
+    // Get command-line arguments, skipping the first one (program name)
+    let args: Vec<String> = env::args().skip(1).collect();
+
+    // Choose the input source: file or stdin
+    if let Some(filename) = args.first() {
+        let file = File::open(filename)?;
+        Ok(Box::new(BufReader::new(file)))
+    } else {
+        Ok(Box::new(BufReader::new(io::stdin())))
+    }
 }
 
 #[cfg(test)]
