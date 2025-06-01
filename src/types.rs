@@ -1,7 +1,7 @@
 use crate::ast::{self, Expr, Opcode};
 use crate::ast::{Block, FunctionDecl, Stmt, TopLevelDecl};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Type {
     Void,
     Number,
@@ -83,18 +83,26 @@ fn typecheck_function_decl(func: &FunctionDecl, env: &mut TypeEnvironment) -> Re
             .push((param.name.clone(), param.ty.clone().into()));
     }
     // Typecheck the function body
-    typecheck_block(&func.body, env)?;
+    typecheck_block(&func.body, env, Some(func.ret.clone().into()))?;
     Ok(())
 }
 
-fn typecheck_block(block: &Block, env: &mut TypeEnvironment) -> Result<(), String> {
+fn typecheck_block(
+    block: &Block,
+    env: &mut TypeEnvironment,
+    return_type: Option<Type>,
+) -> Result<(), String> {
     for stmt in &block.stmts {
-        typecheck_stmt(stmt, env)?;
+        typecheck_stmt(stmt, env, return_type.clone())?;
     }
     Ok(())
 }
 
-fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnvironment) -> Result<(), String> {
+fn typecheck_stmt(
+    stmt: &Stmt,
+    env: &mut TypeEnvironment,
+    return_type: Option<Type>,
+) -> Result<(), String> {
     match stmt {
         Stmt::Expr(expr) => typecheck_expr(expr, env),
         Stmt::Assign(id, expr) => {
@@ -115,9 +123,11 @@ fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnvironment) -> Result<(), String> 
             }
         }
         Stmt::Let(id, ty, expr) => {
+            // type of the assigned value must match the declared type
             let ty: Type = ty.clone().into();
             let ty_expr = derive_type(expr, env)?;
             if is_assignable(&ty, &ty_expr) {
+                // modify the environment with the type of the identifier
                 env.set_type(id, ty);
                 Ok(())
             } else {
@@ -128,9 +138,20 @@ fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnvironment) -> Result<(), String> 
             }
         }
         Stmt::Return(expr) => {
-            let _ = derive_type(expr, env)?;
-            // TODO: Check if the return type matches the function's return type
-            Ok(())
+            let ty = derive_type(expr, env)?;
+            // check if the return type matches the function's return type
+            if let Some(ret) = return_type {
+                if ty == ret {
+                    Ok(())
+                } else {
+                    Err(format!(
+                        "Type mismatch: {:?} cannot be returned from function with return type {:?}",
+                        ty, ret
+                    ))
+                }
+            } else {
+                Ok(())
+            }
         }
         _ => unimplemented!(),
     }
