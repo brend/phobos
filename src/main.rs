@@ -14,25 +14,13 @@ fn main() -> io::Result<()> {
     let mut reader = open_reader()?;
     let mut input = String::new();
     reader.read_to_string(&mut input)?;
-
-    println!("## Input\n\n{}", input);
-
     let program = phobos_grammar::ProgramParser::new()
         .parse(&input)
         .expect("Failed to parse program");
-
-    println!("\nParsing successful!");
-
     types::typecheck(&program).expect("Type checking failed");
-
-    println!("Type check successful!");
-    println!("## Output\n\n``` Lua\n");
-
     let stdout = std::io::stdout();
     let mut handle = stdout.lock();
     codegen::generate_code(&mut handle, &program).expect("Failed to generate code");
-
-    println!("\n```");
     Ok(())
 }
 

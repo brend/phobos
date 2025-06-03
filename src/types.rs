@@ -77,6 +77,8 @@ fn typecheck_function_decl(func: &FunctionDecl, env: &mut TypeEnvironment) -> Re
             Box::new(func.ret.clone().into()),
         ),
     ));
+    // Mark the state of the environment before checking the function body
+    let before_check = env.types.clone();
     // Add the parameters to the environment
     for param in &func.params {
         env.types
@@ -84,6 +86,8 @@ fn typecheck_function_decl(func: &FunctionDecl, env: &mut TypeEnvironment) -> Re
     }
     // Typecheck the function body
     typecheck_block(&func.body, env, Some(func.ret.clone().into()))?;
+    // Restore the environment state before checking the function body
+    env.types = before_check;
     Ok(())
 }
 

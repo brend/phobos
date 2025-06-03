@@ -1,0 +1,7 @@
+fn f(n: Number): Number {
+    return n;
+}
+
+fn g(): Number {
+    return n;
+}
