@@ -116,7 +116,6 @@ pub enum Stmt {
     Assign(String, Expr),
     If(Expr, Block, Option<Block>),
     Return(Box<Expr>),
-    Expr(Box<Expr>),
 }
 
 impl Debug for Stmt {
@@ -126,7 +125,6 @@ impl Debug for Stmt {
             Stmt::Assign(name, expr) => write!(f, "{} = {:?};", name, expr),
             Stmt::If(cond, then, els) => write!(f, "if {:?} {:?} {:?}", cond, then, els),
             Stmt::Return(expr) => write!(f, "return {:?};", expr),
-            Stmt::Expr(expr) => write!(f, "{:?};", expr),
         }
     }
 }

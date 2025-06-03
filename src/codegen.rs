@@ -52,7 +52,6 @@ fn generate_statement<W: Write>(
     indent: usize,
 ) -> Result<(), std::io::Error> {
     match stmt {
-        Stmt::Expr(expr) => generate_expression(writer, expr)?,
         Stmt::Return(expr) => {
             write!(writer, "{}return ", " ".repeat(indent))?;
             generate_expression(writer, expr)?;

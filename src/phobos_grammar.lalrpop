@@ -100,7 +100,6 @@ Block: Block = {
 };
 
 Stmt: Stmt = {
-    <e: Expr> ";" => Stmt::Expr(e),
     "let" <n: Ident> ":" <ty: Type> "=" <e: Expr> ";" => Stmt::Let(n, ty, *e),
     "return" <e: Expr> ";" => Stmt::Return(e),
 };

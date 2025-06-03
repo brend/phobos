@@ -108,7 +108,6 @@ fn typecheck_stmt(
     return_type: Option<Type>,
 ) -> Result<(), String> {
     match stmt {
-        Stmt::Expr(expr) => typecheck_expr(expr, env),
         Stmt::Assign(id, expr) => {
             // look up the type of the identifier
             let ty_left = env
@@ -158,13 +157,6 @@ fn typecheck_stmt(
             }
         }
         _ => unimplemented!(),
-    }
-}
-
-fn typecheck_expr(expr: &Expr, env: &mut TypeEnvironment) -> Result<(), String> {
-    match derive_type(expr, env) {
-        Ok(_) => Ok(()),
-        Err(err) => Err(err),
     }
 }
 
