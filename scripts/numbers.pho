@@ -1,0 +1,11 @@
+fn add_one(x: Number): Number {
+    return x + 1;
+}
+
+fn add_one_point_zero(x: Number): Number {
+    return x + 1.0;
+}
+
+fn add_one_point_five(x: Number): Number {
+    return x + 1.5;
+}

@@ -142,7 +142,7 @@ impl Debug for Stmt {
 }
 
 pub enum Expr {
-    Number(i32),
+    Number(f64),
     String(String),
     Ident(String),
     BinaryExp(Box<Expr>, Opcode, Box<Expr>),
