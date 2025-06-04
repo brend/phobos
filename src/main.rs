@@ -39,12 +39,13 @@ fn open_reader() -> io::Result<Box<dyn BufRead>> {
 
 #[cfg(test)]
 mod tests {
-    use super::ast::TopLevelDecl;
+    use super::ast::Program;
     use super::phobos_grammar;
 
     #[allow(dead_code)]
-    fn program_to_string(program: &Vec<TopLevelDecl>) -> String {
+    fn program_to_string(program: &Program) -> String {
         program
+            .top_level_decls
             .iter()
             .map(|decl| format!("{:?}", decl))
             .collect::<Vec<String>>()
