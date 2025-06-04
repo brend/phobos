@@ -158,7 +158,7 @@ fn typecheck_stmt(
             }
         }
         Stmt::Expr(expr) => {
-            let ty = derive_type(expr, env)?;
+            derive_type(expr, env)?;
             Ok(())
         }
         Stmt::If(condition, then_branch, else_branch) => {
