@@ -1,4 +1,4 @@
-use crate::ast::{self, Expr, Opcode};
+use crate::ast::{self, Expr, Opcode, Program};
 use crate::ast::{Block, FunctionDecl, Stmt, TopLevelDecl};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -6,6 +6,7 @@ pub enum Type {
     Void,
     Number,
     String,
+    Bool,
     Function(Vec<Type>, Box<Type>),
 }
 
@@ -54,9 +55,9 @@ impl TypeEnvironment {
     }
 }
 
-pub fn typecheck(program: &Vec<TopLevelDecl>) -> Result<(), String> {
+pub fn typecheck(program: &Program) -> Result<(), String> {
     let mut env = TypeEnvironment::new();
-    for decl in program {
+    for decl in &program.top_level_decls {
         match decl {
             TopLevelDecl::FunctionDecl(func) => typecheck_function_decl(func, &mut env)?,
             _ => unimplemented!(),
@@ -181,8 +182,45 @@ pub fn derive_type(expr: &Expr, env: &mut TypeEnvironment) -> Result<Type, Strin
                         )),
                     }
                 }
+                Opcode::Eq | Opcode::Neq | Opcode::Lt | Opcode::Le | Opcode::Gt | Opcode::Ge => {
+                    match (&left_ty, &right_ty) {
+                        (Type::Number, Type::Number) => Ok(Type::Bool),
+                        _ => Err(format!(
+                            "Type mismatch: {:?} {:?} {:?}",
+                            &left_ty, opcode, &right_ty
+                        )),
+                    }
+                }
             }
         }
+        Expr::Call(func_name, args) => match env.get_type(func_name) {
+            Some(Type::Function(arg_types, ret_type)) => {
+                // check if argument types match function parameter types
+                if arg_types.len() != args.len() {
+                    Err(format!(
+                        "Argument count mismatch: {:?} {:?}",
+                        func_name, args
+                    ))
+                } else {
+                    for (arg, ty) in args.iter().zip(arg_types.iter()) {
+                        if !is_assignable(ty, &derive_type(arg, env)?) {
+                            return Err(format!(
+                                "Type mismatch: {:?} {:?}",
+                                func_name,
+                                env.get_type(func_name)
+                            ));
+                        }
+                    }
+                    Ok((*ret_type).clone())
+                }
+            }
+            Some(_) => Err(format!(
+                "Type mismatch: {:?} {:?}",
+                func_name,
+                env.get_type(func_name)
+            )),
+            None => Err(format!("Undefined function: {}", func_name)),
+        },
     }
 }
 

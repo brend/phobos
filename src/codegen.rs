@@ -1,14 +1,11 @@
 use std::io::Write;
 
-use crate::ast::{Expr, FunctionDecl, Opcode, Stmt, TopLevelDecl};
+use crate::ast::{Block, Expr, FunctionDecl, Opcode, Program, Stmt, TopLevelDecl};
 
 const INDENT: usize = 4;
 
-pub fn generate_code<W: Write>(
-    writer: &mut W,
-    program: &Vec<TopLevelDecl>,
-) -> Result<(), std::io::Error> {
-    for decl in program {
+pub fn generate_code<W: Write>(writer: &mut W, program: &Program) -> Result<(), std::io::Error> {
+    for decl in &program.top_level_decls {
         generate_declaration(writer, decl, 0)?;
     }
     Ok(())
@@ -39,10 +36,21 @@ fn generate_function<W: Write>(
         write!(writer, "{}", param.name)?;
     }
     write!(writer, ")\n")?;
-    for stmt in &func.body.stmts {
-        generate_statement(writer, stmt, indent + INDENT)?;
-    }
+    generate_block(writer, &func.body, indent + INDENT)?;
     write!(writer, "end\n")?;
+    Ok(())
+}
+
+fn generate_block<W: Write>(
+    writer: &mut W,
+    block: &Block,
+    indent: usize,
+) -> Result<(), std::io::Error> {
+    //write!(writer, "{}do\n", " ".repeat(indent))?;
+    for stmt in &block.stmts {
+        generate_statement(writer, stmt, indent /*+ INDENT*/)?;
+    }
+    //write!(writer, "{}end\n", " ".repeat(indent))?;
     Ok(())
 }
 
@@ -62,7 +70,27 @@ fn generate_statement<W: Write>(
             generate_expression(writer, expr)?;
             write!(writer, "{}\n", " ".repeat(indent))?;
         }
-        _ => unimplemented!(),
+        Stmt::Expr(expr) => {
+            write!(writer, "{}", " ".repeat(indent))?;
+            generate_expression(writer, expr)?;
+            write!(writer, "\n")?;
+        }
+        Stmt::If(cond, then_branch, else_branch) => {
+            write!(writer, "{}if ", " ".repeat(indent))?;
+            generate_expression(writer, cond)?;
+            write!(writer, " then\n")?;
+            generate_block(writer, then_branch, indent + INDENT)?;
+            if let Some(else_branch) = else_branch {
+                write!(writer, "{}else\n", " ".repeat(indent))?;
+                generate_block(writer, else_branch, indent + INDENT)?;
+                write!(writer, "{}end\n", " ".repeat(indent))?;
+            }
+        }
+        Stmt::Assign(name, value) => {
+            write!(writer, "{}let {} = ", " ".repeat(indent), name)?;
+            generate_expression(writer, value)?;
+            write!(writer, ";\n")?;
+        }
     }
     Ok(())
 }
@@ -79,6 +107,16 @@ fn generate_expression<W: Write>(writer: &mut W, expr: &Expr) -> Result<(), std:
             generate_expression(writer, right)?;
             write!(writer, ")")
         }
+        Expr::Call(func, args) => {
+            write!(writer, "{}(", func)?;
+            for (i, arg) in args.iter().enumerate() {
+                if i > 0 {
+                    write!(writer, ", ")?;
+                }
+                generate_expression(writer, arg)?;
+            }
+            write!(writer, ")")
+        }
     }
 }
 
@@ -88,6 +126,12 @@ fn generate_op<W: Write>(writer: &mut W, op: &Opcode) -> Result<(), std::io::Err
         Opcode::Sub => write!(writer, "-")?,
         Opcode::Mul => write!(writer, "*")?,
         Opcode::Div => write!(writer, "/")?,
+        Opcode::Eq => write!(writer, "==")?,
+        Opcode::Neq => write!(writer, "!=")?,
+        Opcode::Lt => write!(writer, "<")?,
+        Opcode::Le => write!(writer, "<=")?,
+        Opcode::Gt => write!(writer, ">")?,
+        Opcode::Ge => write!(writer, ">=")?,
     }
     Ok(())
 }

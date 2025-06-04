@@ -3,8 +3,8 @@ use crate::ast::*;
 
 grammar;
 
-pub Program: Vec<TopLevelDecl> = {
-    TopLevelDecl* => <>,
+pub Program: Program = {
+    TopLevelDecl* => Program::new(<>),
 };
 
 TopLevelDecl: TopLevelDecl = {
@@ -57,30 +57,34 @@ FieldDecl: FieldDecl = {
 };
 
 pub Expr: Box<Expr> = {
-    Expr ExprOp Factor => Box::new(Expr::BinaryExp(<>)),
-    Factor,
+    EqExpr,
 };
 
-ExprOp: Opcode = {
-    "+" => Opcode::Add,
-    "-" => Opcode::Sub,
+EqExpr: Box<Expr> = {
+    EqExpr EqOp CmpExpr => Box::new(Expr::BinaryExp(<>)),
+    CmpExpr,
 };
 
-Factor: Box<Expr> = {
-    Factor FactorOp Term => Box::new(Expr::BinaryExp(<>)),
+CmpExpr: Box<Expr> = {
+    CmpExpr CmpOp AddExpr => Box::new(Expr::BinaryExp(<>)),
+    AddExpr,
+};
+
+AddExpr: Box<Expr> = {
+    AddExpr AddOp MulExpr => Box::new(Expr::BinaryExp(<>)),
+    MulExpr,
+};
+
+MulExpr: Box<Expr> = {
+    MulExpr MulOp Term => Box::new(Expr::BinaryExp(<>)),
     Term,
-};
-
-FactorOp: Opcode = {
-    "*" => Opcode::Mul,
-    "/" => Opcode::Div,
 };
 
 Term: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
     Ident => Box::new(Expr::Ident(<>)),
     StringLiteral => Box::new(Expr::String(<>)),
-    "(" <Expr> ")"
+    "(" <Expr> ")",
 };
 
 Num: i32 = {
@@ -100,11 +104,43 @@ Block: Block = {
 };
 
 Stmt: Stmt = {
-    "if" <cond: Expr> <then: Block> <els: Block> => Stmt::If(*cond, then, Some(els)),
+    "if" <cond: Expr> <then: Block> "else" <els: Block> => Stmt::If(*cond, then, Some(els)),
     "let" <n: Ident> ":" <ty: Type> "=" <e: Expr> ";" => Stmt::Let(n, ty, *e),
     "return" <e: Expr> ";" => Stmt::Return(e),
+    Expr => Stmt::Expr(*<>),
+};
+
+ArgList: Vec<Expr> = {
+    <first: Expr> "," <rest: ArgList> => {
+        let mut args = vec![*first];
+        args.extend(rest);
+        args
+    },
+    <last: Expr> => vec![*last],
 };
 
 Type: Type = {
     Ident => Type::new(<>),
 }
+
+EqOp: Opcode = {
+    "==" => Opcode::Eq,
+    "!=" => Opcode::Neq,
+};
+
+CmpOp: Opcode = {
+    "<"  => Opcode::Lt,
+    "<=" => Opcode::Le,
+    ">"  => Opcode::Gt,
+    ">=" => Opcode::Ge,
+};
+
+AddOp: Opcode = {
+    "+" => Opcode::Add,
+    "-" => Opcode::Sub,
+};
+
+MulOp: Opcode = {
+    "*" => Opcode::Mul,
+    "/" => Opcode::Div,
+};

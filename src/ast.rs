@@ -1,5 +1,15 @@
 use std::fmt::Debug;
 
+pub struct Program {
+    pub top_level_decls: Vec<TopLevelDecl>,
+}
+
+impl Program {
+    pub fn new(top_level_decls: Vec<TopLevelDecl>) -> Self {
+        Program { top_level_decls }
+    }
+}
+
 pub enum TopLevelDecl {
     FunctionDecl(FunctionDecl),
     ExternDecl(ExternDecl),
@@ -116,6 +126,7 @@ pub enum Stmt {
     Assign(String, Expr),
     If(Expr, Block, Option<Block>),
     Return(Box<Expr>),
+    Expr(Expr),
 }
 
 impl Debug for Stmt {
@@ -125,6 +136,7 @@ impl Debug for Stmt {
             Stmt::Assign(name, expr) => write!(f, "{} = {:?};", name, expr),
             Stmt::If(cond, then, els) => write!(f, "if {:?} {:?} {:?}", cond, then, els),
             Stmt::Return(expr) => write!(f, "return {:?};", expr),
+            Stmt::Expr(expr) => write!(f, "{:?}", expr),
         }
     }
 }
@@ -134,6 +146,7 @@ pub enum Expr {
     String(String),
     Ident(String),
     BinaryExp(Box<Expr>, Opcode, Box<Expr>),
+    Call(String, Vec<Expr>),
 }
 
 impl Debug for Expr {
@@ -143,6 +156,7 @@ impl Debug for Expr {
             Expr::String(s) => write!(f, "\"{}\"", s),
             Expr::Ident(name) => write!(f, "{}", name),
             Expr::BinaryExp(left, op, right) => write!(f, "({:?} {:?} {:?})", left, op, right),
+            Expr::Call(func, args) => write!(f, "{}({:?})", func, args),
         }
     }
 }
@@ -152,6 +166,12 @@ pub enum Opcode {
     Div,
     Add,
     Sub,
+    Eq,
+    Neq,
+    Lt,
+    Le,
+    Gt,
+    Ge,
 }
 
 impl Debug for Opcode {
@@ -161,6 +181,12 @@ impl Debug for Opcode {
             Opcode::Div => write!(f, "/"),
             Opcode::Add => write!(f, "+"),
             Opcode::Sub => write!(f, "-"),
+            Opcode::Eq => write!(f, "=="),
+            Opcode::Neq => write!(f, "!="),
+            Opcode::Lt => write!(f, "<"),
+            Opcode::Le => write!(f, "<="),
+            Opcode::Gt => write!(f, ">"),
+            Opcode::Ge => write!(f, ">="),
         }
     }
 }
