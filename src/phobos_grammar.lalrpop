@@ -1,35 +1,27 @@
 use std::str::FromStr;
 use crate::ast::*;
-
 grammar;
-
 pub Program: Program = {
     TopLevelDecl* => Program::new(<>),
 };
-
 TopLevelDecl: TopLevelDecl = {
     FunctionDecl => TopLevelDecl::FunctionDecl(<>),
     ExternDecl => TopLevelDecl::ExternDecl(<>),
     TypeDecl => TopLevelDecl::TypeDecl(<>),
     GameDecl => TopLevelDecl::GameDecl(<>),
 };
-
 FunctionDecl: FunctionDecl = {
     "fn" <n: Ident> "(" <ps: Params> ")" ":" <ret: Type> <bd: Block> => FunctionDecl::new(n, ps, ret, bd),
 };
-
 ExternDecl: ExternDecl = {
     "extern" <n: Ident> "(" <ps: Params> ")" ":" <ret: Type> => ExternDecl::new(n, ps, ret),
 };
-
 TypeDecl: TypeDecl = {
     "type" <n: Ident> "{" <fs: Fields> "}" => TypeDecl::new(n, fs),
 };
-
 GameDecl: GameDecl = {
     "game" <n: Ident> "{" <fs: FunctionDecl*> "}" => GameDecl::new(n, fs),
 };
-
 Params: Vec<ParamDecl> = {
     <first: ParamDecl> "," <rest: Params> => {
         let mut params = vec![first];
@@ -38,11 +30,9 @@ Params: Vec<ParamDecl> = {
     },
     ParamDecl* => <>,
 };
-
 ParamDecl: ParamDecl = {
     <n: Ident> ":" <ty: Type> => ParamDecl::new(n, ty),
 };
-
 Fields: Vec<FieldDecl> = {
     <first:FieldDecl> "," <rest:Fields> => {
         let mut fields = vec![first];
@@ -51,65 +41,56 @@ Fields: Vec<FieldDecl> = {
     },
     <last:FieldDecl> => vec![last],
 };
-
 FieldDecl: FieldDecl = {
     <n: Ident> ":" <ty: Type> => FieldDecl::new(n, ty),
 };
-
 pub Expr: Box<Expr> = {
     EqExpr,
 };
-
 EqExpr: Box<Expr> = {
     EqExpr EqOp CmpExpr => Box::new(Expr::BinaryExp(<>)),
     CmpExpr,
 };
-
 CmpExpr: Box<Expr> = {
     CmpExpr CmpOp AddExpr => Box::new(Expr::BinaryExp(<>)),
     AddExpr,
 };
-
 AddExpr: Box<Expr> = {
     AddExpr AddOp MulExpr => Box::new(Expr::BinaryExp(<>)),
     MulExpr,
 };
-
 MulExpr: Box<Expr> = {
-    MulExpr MulOp Term => Box::new(Expr::BinaryExp(<>)),
-    Term,
+    MulExpr MulOp CallExpr => Box::new(Expr::BinaryExp(<>)),
+    CallExpr,
 };
-
-Term: Box<Expr> = {
+CallExpr: Box<Expr> = {
+    PrimaryExpr,
+};
+PrimaryExpr: Box<Expr> = {
     Num => Box::new(Expr::Number(<>)),
+    <id: Ident> "(" <args: ArgList> ")" => Box::new(Expr::Call(id, args)),
     Ident => Box::new(Expr::Ident(<>)),
     StringLiteral => Box::new(Expr::String(<>)),
-    "(" <Expr> ")",
+    "(" <Expr> ")" => <>,
 };
-
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap()
 };
-
 StringLiteral: String = {
     r#""([^"\\]|\\.)*""# => String::from(<>).trim_matches('"').to_string()
 };
-
 Ident: String = {
     r"[a-zA-Z_][a-zA-Z0-9_]*" => String::from(<>)
 };
-
 Block: Block = {
     "{" <sm: Stmt*> "}" => Block::new(sm),
 };
-
 Stmt: Stmt = {
     "if" <cond: Expr> <then: Block> "else" <els: Block> => Stmt::If(*cond, then, Some(els)),
     "let" <n: Ident> ":" <ty: Type> "=" <e: Expr> ";" => Stmt::Let(n, ty, *e),
     "return" <e: Expr> ";" => Stmt::Return(e),
-    Expr => Stmt::Expr(*<>),
+    <e: Expr> ";" => Stmt::Expr(*e),
 };
-
 ArgList: Vec<Expr> = {
     <first: Expr> "," <rest: ArgList> => {
         let mut args = vec![*first];
@@ -117,29 +98,25 @@ ArgList: Vec<Expr> = {
         args
     },
     <last: Expr> => vec![*last],
+    => vec![], // Allow empty argument lists
 };
-
 Type: Type = {
     Ident => Type::new(<>),
 }
-
 EqOp: Opcode = {
     "==" => Opcode::Eq,
     "!=" => Opcode::Neq,
 };
-
 CmpOp: Opcode = {
     "<"  => Opcode::Lt,
     "<=" => Opcode::Le,
     ">"  => Opcode::Gt,
     ">=" => Opcode::Ge,
 };
-
 AddOp: Opcode = {
     "+" => Opcode::Add,
     "-" => Opcode::Sub,
 };
-
 MulOp: Opcode = {
     "*" => Opcode::Mul,
     "/" => Opcode::Div,

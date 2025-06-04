@@ -157,7 +157,25 @@ fn typecheck_stmt(
                 Ok(())
             }
         }
-        _ => unimplemented!(),
+        Stmt::Expr(expr) => {
+            let ty = derive_type(expr, env)?;
+            Ok(())
+        }
+        Stmt::If(condition, then_branch, else_branch) => {
+            let condition_ty = derive_type(condition, env)?;
+            if condition_ty != Type::Bool {
+                Err(format!(
+                    "Condition must be a boolean, got {:?}",
+                    condition_ty
+                ))
+            } else {
+                typecheck_block(&then_branch, env, None)?;
+                if let Some(else_branch) = else_branch {
+                    typecheck_block(&else_branch, env, None)?;
+                }
+                Ok(())
+            }
+        }
     }
 }
 
