@@ -13,7 +13,7 @@ impl Program {
 pub enum TopLevelDecl {
     FunctionDecl(FunctionDecl),
     ExternDecl(ExternDecl),
-    TypeDecl(TypeDecl),
+    RecordDecl(RecordDecl),
     GameDecl(GameDecl),
 }
 
@@ -22,7 +22,7 @@ impl Debug for TopLevelDecl {
         match self {
             TopLevelDecl::FunctionDecl(func) => write!(f, "{:?}", func),
             TopLevelDecl::ExternDecl(extern_decl) => write!(f, "{:?}", extern_decl),
-            TopLevelDecl::TypeDecl(type_decl) => write!(f, "{:?}", type_decl),
+            TopLevelDecl::RecordDecl(type_decl) => write!(f, "{:?}", type_decl),
             TopLevelDecl::GameDecl(game_decl) => write!(f, "{:?}", game_decl),
         }
     }
@@ -208,18 +208,18 @@ impl Debug for GameDecl {
     }
 }
 
-pub struct TypeDecl {
+pub struct RecordDecl {
     pub name: String,
     pub fields: Vec<FieldDecl>,
 }
 
-impl TypeDecl {
+impl RecordDecl {
     pub fn new(name: String, fields: Vec<FieldDecl>) -> Self {
-        TypeDecl { name, fields }
+        RecordDecl { name, fields }
     }
 }
 
-impl Debug for TypeDecl {
+impl Debug for RecordDecl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
