@@ -8,6 +8,7 @@ pub enum Type {
     String,
     Bool,
     Function(Vec<Type>, Box<Type>),
+    Record(String, Vec<Field>),
 }
 
 impl From<ast::Type> for Type {
@@ -29,6 +30,18 @@ impl From<FunctionDecl> for Type {
                 .collect(),
             Box::new(func.ret.into()),
         )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Field {
+    name: String,
+    ty: Type,
+}
+
+impl Field {
+    pub fn new(name: String, ty: Type) -> Self {
+        Field { name, ty }
     }
 }
 
@@ -60,6 +73,14 @@ pub fn typecheck(program: &Program) -> Result<(), String> {
     for decl in &program.top_level_decls {
         match decl {
             TopLevelDecl::FunctionDecl(func) => typecheck_function_decl(func, &mut env)?,
+            TopLevelDecl::RecordDecl(name, fields) => {
+                let mut record_fields = Vec::new();
+                for field in fields {
+                    record_fields.push(Field::new(field.name.clone(), field.ty.clone().into()));
+                }
+                let record_type = Type::Record(name.clone(), record_fields);
+                env.set_type(name, record_type);
+            }
             _ => unimplemented!(),
         }
     }

@@ -18,6 +18,7 @@ fn generate_declaration<W: Write>(
 ) -> Result<(), std::io::Error> {
     match decl {
         TopLevelDecl::FunctionDecl(func) => generate_function(writer, func, indent)?,
+        TopLevelDecl::RecordDecl(name, fields) => {}
         _ => unimplemented!(),
     }
     Ok(())

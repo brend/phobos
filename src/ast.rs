@@ -13,7 +13,7 @@ impl Program {
 pub enum TopLevelDecl {
     FunctionDecl(FunctionDecl),
     ExternDecl(ExternDecl),
-    RecordDecl(RecordDecl),
+    RecordDecl(String, Vec<FieldDecl>),
     GameDecl(GameDecl),
 }
 
@@ -22,7 +22,9 @@ impl Debug for TopLevelDecl {
         match self {
             TopLevelDecl::FunctionDecl(func) => write!(f, "{:?}", func),
             TopLevelDecl::ExternDecl(extern_decl) => write!(f, "{:?}", extern_decl),
-            TopLevelDecl::RecordDecl(type_decl) => write!(f, "{:?}", type_decl),
+            TopLevelDecl::RecordDecl(name, fields) => {
+                write!(f, "RecordDecl({}, {:?})", name, fields)
+            }
             TopLevelDecl::GameDecl(game_decl) => write!(f, "{:?}", game_decl),
         }
     }
@@ -205,32 +207,6 @@ impl GameDecl {
 impl Debug for GameDecl {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "game {}", self.name)
-    }
-}
-
-pub struct RecordDecl {
-    pub name: String,
-    pub fields: Vec<FieldDecl>,
-}
-
-impl RecordDecl {
-    pub fn new(name: String, fields: Vec<FieldDecl>) -> Self {
-        RecordDecl { name, fields }
-    }
-}
-
-impl Debug for RecordDecl {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "type {} {{ {} }}",
-            self.name,
-            self.fields
-                .iter()
-                .map(|field| format!("{:?}", field))
-                .collect::<Vec<_>>()
-                .join(", ")
-        )
     }
 }
 

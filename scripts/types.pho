@@ -1,0 +1,8 @@
+record Point {
+    x: Number,
+    y: Number,
+}
+
+fn f(p: Point): String {
+    return "I get the point";
+}

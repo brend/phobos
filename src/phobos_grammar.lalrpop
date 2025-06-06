@@ -10,7 +10,7 @@ pub Program: Program = {
 TopLevelDecl: TopLevelDecl = {
     FunctionDecl => TopLevelDecl::FunctionDecl(<>),
     ExternDecl => TopLevelDecl::ExternDecl(<>),
-    RecordDecl => TopLevelDecl::RecordDecl(<>),
+    RecordDecl => TopLevelDecl::RecordDecl(<>.0, <>.1),
     GameDecl => TopLevelDecl::GameDecl(<>),
 };
 
@@ -22,8 +22,8 @@ ExternDecl: ExternDecl = {
     "extern" <n: Ident> "(" <ps: Params> ")" ":" <ret: Type> => ExternDecl::new(n, ps, ret),
 };
 
-RecordDecl: RecordDecl = {
-    "type" <n: Ident> "{" <fs: FieldList> "}" => RecordDecl::new(n, fs),
+RecordDecl: (String, Vec<FieldDecl>) = {
+    "record" <n: Ident> "{" <fs: FieldList> "}" => (n, fs),
 };
 
 GameDecl: GameDecl = {
@@ -50,6 +50,7 @@ FieldList: Vec<FieldDecl> = {
         fields
     },
     <last:FieldDecl> => vec![last],
+    => vec![]
 };
 
 FieldDecl: FieldDecl = {

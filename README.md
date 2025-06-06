@@ -15,3 +15,44 @@ function inc(n)
     return (n + 1)
 end
 ```
+
+## Roadmap
+
+The following features are planned for the first release:
+
+## Record types
+
+### Record type definitions
+
+```
+record Person {
+  name: String,
+  age: Number
+}
+```
+
+### Record literals
+
+```
+let johnny: Person = { name: "Johnny", age: 42 }
+```
+
+### Field access
+
+```
+print(johnny.name)
+```
+
+## Arrays
+
+### Array literals
+
+```
+let numbers: [Number] = [1, 2, 3]
+```
+
+### Array indexing
+
+```
+print(numbers[1])
+```
